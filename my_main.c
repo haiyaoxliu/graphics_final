@@ -454,6 +454,7 @@ void my_main() {
       free(tmp);
       tmp = new_matrix(4, 1000);
     }
+    printf("making animation");
     make_animation(name);
   }
 }

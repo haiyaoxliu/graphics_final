@@ -80,7 +80,7 @@ void first_pass() {
   for(i = 0; i < lastop; i++) {
     if(op[i].opcode == FRAMES) {
       num_frames = op[i].op.frames.num_frames;
-    } else if(op[i].opcode == BASENAME) {
+    } else if(!basename && op[i].opcode == BASENAME) {
       strcpy(name, op[i].op.basename.p->name);
       basename = 1;
     } else if(!varies && op[i].opcode == VARY) {
@@ -92,7 +92,7 @@ void first_pass() {
     exit(1);
   }
 
-  if(num_frames > 1 && !basename) {
+  if(num_frames != 1 && !basename) {
     strcpy(name, "basename");
   }
 
@@ -131,12 +131,12 @@ struct vary_node ** second_pass() {
       step = (op[i].op.vary.end_val - op[i].op.vary.start_val)/(end-start);
 
       for(current_frame = start; current_frame < end; current_frame++) {
-	struct vary_node * single = (struct vary_node*)malloc(sizeof(struct vary_node));
-	strcpy(single->name, op[i].op.vary.p->name);
+	struct vary_node * current = (struct vary_node*)malloc(sizeof(struct vary_node));
+	strcpy(current->name, op[i].op.vary.p->name);
 
-	single->value = op[i].op.vary.start_val + (current_frame - start) * step;
-	single -> next = knobs[current_frame];
-	knobs[current_frame] = single;
+	current->value = op[i].op.vary.start_val + (current_frame - start) * step;
+	current -> next = knobs[current_frame];
+	knobs[current_frame] = current;
       }
     }
   }
@@ -249,20 +249,27 @@ void my_main() {
   clear_zbuffer(zb);
 
   first_pass();
+  
   struct vary_node **knobs = second_pass();
 
-  int x;
-  for(x = 0; x < num_frames; x++) {
-    SYMTAB * c;
-    struct vary_node *node = knobs[x];
+  int i;
+  for(i = 0; i < num_frames; i++) {
+    printf("%d\n",numframes);
+    
+    struct vary_node *node = knobs[i];
 
-    // Set symbol table
-    while(node != NULL) {
-      set_value(lookup_symbol(node->name), node->value);
-      node = node->next;
+    while(node) {
+      if (!lookup_symbol(now->name)) {
+	add_symbol(now->name, SYM_VALUE, &(now->value));
+      } else {
+	set_value(lookup_symbol(now->name),now->value);
+        now=now->next;      set_value(lookup_symbol(node->name), node->value);
+	node = node->next;
+      }
     }
 
-    knob_value = 1.0;
+    print_knobs();
+    
     for (i=0;i<lastop;i++) {
       //printf("%d: ",i);
       switch (op[i].opcode)
@@ -434,18 +441,19 @@ void my_main() {
       printf("\n");
     }//end operation loop
     
-    char p[128];
-    sprintf(p, "anim/%s%03d", name, i);
-    save_extension(t, p);
+    char fname[strlen(name) + 12];
+
+    sprintf(fname, "anim/%s%03d.png", name, i);
+    save_extension(t, fname);
     
-    clear_zbuffer(zb);
     clear_screen(t);
+    clear_zbuffer(zb);
     
     free_stack(systems);
     systems = new_stack();
     
     free(tmp);
-  tmp = new_matrix(4, 1000);
+    tmp = new_matrix(4, 1000);
   }
-  if(num_frames > 0) {make_animation(name);}
+  make_animation(name);
 }

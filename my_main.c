@@ -252,19 +252,18 @@ void my_main() {
   
   struct vary_node **knobs = second_pass();
 
-  int i;
-  for(i = 0; i < num_frames; i++) {
-    printf("%d\n",numframes);
+  int f;
+  for(f = 0; f < num_frames; f++) {
+    printf("%d\n",num_frames);
     
-    struct vary_node *node = knobs[i];
+    struct vary_node *node = knobs[f];
 
     while(node) {
-      if (!lookup_symbol(now->name)) {
-	add_symbol(now->name, SYM_VALUE, &(now->value));
+      if (!lookup_symbol(node->name)) {
+	add_symbol(node->name, SYM_VALUE, &(node->value));
       } else {
-	set_value(lookup_symbol(now->name),now->value);
-        now=now->next;      set_value(lookup_symbol(node->name), node->value);
-	node = node->next;
+	set_value(lookup_symbol(node->name),node->value);
+        node=node->next;
       }
     }
 
@@ -443,7 +442,7 @@ void my_main() {
     
     char fname[strlen(name) + 12];
 
-    sprintf(fname, "anim/%s%03d.png", name, i);
+    sprintf(fname, "anim/%s%03d.png", name, f);
     save_extension(t, fname);
     
     clear_screen(t);

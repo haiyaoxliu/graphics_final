@@ -44,10 +44,6 @@ run:
 	./mdl simple_anim.mdl
 	animate simple.gif
 
-mine:
-	./mdl mine.mdl
-	animate mine.gif
-
 clean:
 	rm y.tab.c y.tab.h
 	rm lex.yy.c
